@@ -1,4 +1,25 @@
 <launch>
+    <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type burger"/>
+    <arg name="Gazebo" default="True" />
+    <arg name="rviz" default="False" />
 
 
+    <!-- <include file="$(find turtlebot3)/turtlebot3_bringup/turtlebot3_remote.launch" />
+    <arg name="model" default="$(env TURTLEBOT_MODEL)" doc="model type [burger, waffle, waffle_pi]"/> -->
+
+    <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard" output="screen"></node>
+
+    <group if="$(arg Gazebo)">
+        <include file="$(find gazebo_ros)/launch/empty_world.launch" />
+            <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/turtlebot3_house.world"/>
+    </group>
+    <group if="$(arg rviz)">
+        <node name="rviz" pkg="rviz" type="rviz" args="-d $(find homework4)/config/turtle_view.rviz" />
+        <node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" >
+          <remap from="joint_state" to="different_joint_states" />
+        </node>
+    </group>
+
+    <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
+    <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model turtlebot3 -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
 </launch>
