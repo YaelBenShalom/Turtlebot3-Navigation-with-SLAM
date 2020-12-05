@@ -1,0 +1,6 @@
+<launch>
+
+    <include file="$(find homework4)/launch/slam_stack.launch" />
+    <node name="explore" pkg="homework4" type="explore" />
+
+</launch>
