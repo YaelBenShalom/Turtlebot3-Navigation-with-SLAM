@@ -1,4 +1,28 @@
 <launch>
+    <arg name="teleop" default="False" />
+    <arg name="Gazebo" default="True" />
+    <arg name="slam_toolbox" default="False" />
 
+    <!-- turtlebot3_teleop -->
+    <group if="$(arg teleop)">
+        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard" output="screen"></node>
+    </group>
 
+    <!-- slam_toolbox -->
+    <group if="$(arg slam_toolbox)">
+        <node pkg="slam_toolbox" type="sync_slam_toolbox_node" name="slam_toolbox" output="screen">
+            <rosparam command="load" file="$(find slam_toolbox)/config/mapper_params_online_sync.yaml" />
+        </node>
+    </group>
+
+    <!-- Gazebo -->
+    <group if="$(arg Gazebo)">
+        <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
+    </group>
+
+    <!-- turtlebot3_navigation -->
+    <include file="$(find turtlebot3_navigation)/launch/turtlebot3_navigation.launch" >
+        <arg name="map_file" value="$(find homework4)/maps/map.yaml" />
+    </include>
+    
 </launch>

@@ -1,25 +1,28 @@
 <launch>
+    <arg name="teleop" default="True" />
     <arg name="Gazebo" default="True" />
-    <arg name="rviz" default="False" />
-    <arg name="map_file" default="$(find homework4)/map/map.yaml"/>
-    <arg name="x_pos" default="0.0"/>
-    <arg name="y_pos" default="0.0"/>
-    <arg name="z_pos" default="0.0"/>
+    <arg name="slam_toolbox" default="True" />
 
-    <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard" output="screen"></node>
+    <!-- turtlebot3_teleop -->
+    <group if="$(arg teleop)">
+        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard" output="screen"></node>
+    </group>
 
     <!-- slam_toolbox -->
-    <node pkg="slam_toolbox" type="sync_slam_toolbox_node" name="slam_toolbox" output="screen">
-        <rosparam command="load" file="$(find slam_toolbox)/config/mapper_params_online_sync.yaml" />
-    </node>
+    <group if="$(arg slam_toolbox)">
+        <node pkg="slam_toolbox" type="sync_slam_toolbox_node" name="slam_toolbox" output="screen">
+            <rosparam command="load" file="$(find slam_toolbox)/config/mapper_params_online_sync.yaml" />
+        </node>
+    </group>
 
     <!-- Gazebo -->
     <group if="$(arg Gazebo)">
         <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
     </group>
 
+    <!-- turtlebot3_navigation -->
     <include file="$(find turtlebot3_navigation)/launch/turtlebot3_navigation.launch" />
-    <!-- <node pkg="map_server" name="map_server" type="map_server" args="$(arg map_file)"/> -->
-    <!-- <include file="$(find turtlebot3_navigation)/launch/amcl.launch"/> -->
-
+        <!-- <arg name="map_file" default="$(find homework4)/maps/map.yaml"/> -->
+    </include>
+    
 </launch>

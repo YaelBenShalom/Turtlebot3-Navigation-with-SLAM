@@ -1,4 +1,30 @@
 <launch>
+    <arg name="teleop" default="False" />
+    <arg name="Gazebo" default="True" />
+    <arg name="slam_toolbox" default="True" />
 
+    <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch" />
+
+    <!-- turtlebot3_teleop -->
+    <group if="$(arg teleop)">
+        <node pkg="turtlebot3_teleop" type="turtlebot3_teleop_key" name="turtlebot3_teleop_keyboard" output="screen"></node>
+    </group>
+
+    <!-- slam_toolbox -->
+    <group if="$(arg slam_toolbox)">
+        <include file="$(find slam_toolbox)/online_async.launch" />
+    </group>
+
+    <!-- Gazebo -->
+    <group if="$(arg Gazebo)">
+        <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
+    </group>
+
+    <!-- turtlebot3_navigation -->
+    <include file="$(find turtlebot3_navigation)/launch/move_base.launch" />
+    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find turtlebot3_navigation)/rviz/turtlebot3_navigation.rviz"/>
+        <!-- <arg name="map_file" value="$(find homework4)/maps/map.yaml" /> -->
+    <!-- </include> -->
+    
 
 </launch>

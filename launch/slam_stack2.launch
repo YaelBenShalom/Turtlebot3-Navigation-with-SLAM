@@ -1,0 +1,18 @@
+<launch>
+
+    <!-- Turtlebot -->
+    <include file="$(find turtlebot3_bringup)/launch/turtlebot3_remote.launch" />
+
+    <!-- Gazebo -->
+    <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_house.launch" />
+
+    <!-- Mapping -->
+    <include file="$(find slam_toolbox)/online_async.launch" />
+    
+    <!-- Localization -->
+    <include file="$(find turtlebot3_navigation)/launch/move_base.launch" />
+    
+    <!-- Rviz -->
+    <node pkg="rviz" type="rviz" name="rviz" required="true" args="-d $(find turtlebot3_navigation)/rviz/turtlebot3_navigation.rviz"/>
+
+</launch>
