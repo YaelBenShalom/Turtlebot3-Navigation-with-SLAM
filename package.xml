@@ -60,8 +60,7 @@
   <exec_depend>turtlebot3_description</exec_depend>
   <exec_depend>slam_toolbox</exec_depend>
   <exec_depend>turtlebot3_navigation</exec_depend>
-
-
+  <exec_depend>turtlebot3_bringup</exec_depend>
   <depend>turtlesim</depend> 
 
   <!-- The export tag contains other, unspecified, tags -->

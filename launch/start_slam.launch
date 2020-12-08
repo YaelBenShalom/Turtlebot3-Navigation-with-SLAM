@@ -23,6 +23,5 @@
     <!-- turtlebot3_navigation -->
     <include file="$(find turtlebot3_navigation)/launch/turtlebot3_navigation.launch" />
         <!-- <arg name="map_file" default="$(find homework4)/maps/map.yaml"/> -->
-    </include>
     
 </launch>
