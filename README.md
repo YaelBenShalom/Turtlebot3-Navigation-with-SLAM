@@ -4,13 +4,17 @@ GitHub repository - `https://github.com/ME495-EmbeddedSystems/homework04-YaelBen
 ## Overview
 The goal is to use the turtlebot to map an environment and then navigate within the map using slam_toolbox.
 
-The package contain 3 launchfiles and 1 node:
+The package contain 4 launchfiles and 1 node:
+
+**explore.py** - A node that causes the robot to explore the environment autonomously while mapping the world.
 
 **start_slam.launch** - Starts the turtlebot3 on gazebo (in the house environment), and drives the turtlebot3 using turtlebot3_teleop node throughout its workspace while running slam_toolbox. After exploring the map, you can use the mapserver to save the map file.
 
 **nav_stack.launch** - Uses amcl to localize your robot and the ROS navigation stack to allow the robot to move using the map created in the previous step.
 
 **slam_stack.launch** - Runs all of the nav-stack components as in the previous step except instead of starting amcl and a pre-built map uses slam_toolbox to create the map while navigating.
+
+**explore.launch** - Lets the robot use the `explore` node and slam_toolbox to autonomously map the environment.
 
 
 ## Usage and Configuration instructions
@@ -32,3 +36,8 @@ The package contain 3 launchfiles and 1 node:
      - Explore the space by setting 2D navigation goals manually in rviz.
 
     ![The robot navigates to a unknown 2D navigation goal in Rviz](https://github.com/ME495-EmbeddedSystems/homework04-YaelBenShalom/blob/master/videos/slam_stack.gif)
+
+4. To launch the `explore` launchfile on Gazebo and Rviz simulation, run `roslaunch homework4 explore.launch`.
+
+     - Explore the space by randomly picking 2D navigation goals automatically in rviz.
+

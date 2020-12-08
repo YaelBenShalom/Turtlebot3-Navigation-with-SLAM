@@ -9,6 +9,7 @@
 
 import rospy
 import actionlib
+import numpy as np
 from actionlib_msgs.msg import GoalStatus
 from move_base_msgs.msg import MoveBaseFeedback, MoveBaseGoal, MoveBaseAction
 from nav_msgs.msg import OccupancyGrid
@@ -20,7 +21,6 @@ class Explore:
     def __init__(self):
         """ Initialize environment
         """
-        self.map = OccupancyGrid()
         self.rate = rospy.Rate(2)
 
         # self.result = MoveBaseFeedback()
@@ -29,7 +29,9 @@ class Explore:
         self.move_base = actionlib.SimpleActionClient('move_base', MoveBaseAction)
         
         # Initialize subscribers:
+        self.map = OccupancyGrid()
         self.sub_map = rospy.Subscriber('/map', OccupancyGrid, self.map_callback)
+        self.sub_feedback = rospy.Subscriber('/move_base/feedback', MoveBaseAction, self.feedback_callback)
 
         while not rospy.is_shutdown():
             # Create goal:
@@ -50,31 +52,40 @@ class Explore:
         """ Callback function for map subscriber.
         Subscribes to /map to get the OccupancyGrid of the map.
         """
-        self.map = data
-    
+        self.map = np.array(data.data).reshape((data.info.height, data.info.width))
+        self.map_info = data.info
+
+
+    def feedback_callback(self,data):
+        """ Callback function for feedback subscriber.
+        Subscribes to /move_base/feedback to get the MoveBaseAction of move_base.
+        """
+        self.position = data.feedback.base_position.pose
+
 
     def move(self, goal):
-            # Start listner:
-            self.move_base.wait_for_server(rospy.Duration(60))
+        # Start listner:
+        self.move_base.wait_for_server(rospy.Duration(60))
+        rospy.logdebug("move_base is ready") 
 
-            # Send the goal pose to the MoveBaseAction server
-            # rospy.logdebug(f"Sending goal")
-            self.move_base.send_goal(goal)
+        # Send the goal pose to the MoveBaseAction server
+        # rospy.logdebug(f"Sending goal")
+        self.move_base.send_goal(goal)
 
-            # # Allow 1 minute to get there
-            # rospy.logdebug(f"Moving")
-            finished_within_time = self.move_base.wait_for_result(rospy.Duration(60)) 
-            
-            # If we don't get there in time, abort the goal
-            if not finished_within_time:
-                self.move_base.cancel_goal()
-                rospy.loginfo("Timed out achieving goal")
+        # # Allow 1 minute to get there
+        # rospy.logdebug(f"Moving")
+        finished_within_time = self.move_base.wait_for_result(rospy.Duration(60)) 
+        
+        # If we don't get there in time, abort the goal
+        if not finished_within_time:
+            self.move_base.cancel_goal()
+            rospy.loginfo("Timed out achieving goal")
 
-            else:
-                # We made it!
-                state = self.move_base.get_state()
-                if state == GoalStatus.SUCCEEDED:
-                    rospy.loginfo("Goal succeeded!")
+        else:
+            # We made it!
+            state = self.move_base.get_state()
+            if state == GoalStatus.SUCCEEDED:
+                rospy.loginfo("Goal succeeded!")
 
         # # Send the goal pose to the MoveBaseAction server
         # self.move_base.send_goal(goal)
