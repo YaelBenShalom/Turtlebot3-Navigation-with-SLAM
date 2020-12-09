@@ -41,3 +41,4 @@ The package contain 4 launchfiles and 1 node:
 
      - Explore the space by randomly picking 2D navigation goals automatically in rviz.
 
+    ![The robot navigates to random 2D navigation goals in Rviz](https://github.com/ME495-EmbeddedSystems/homework04-YaelBenShalom/blob/master/videos/explore.gif)

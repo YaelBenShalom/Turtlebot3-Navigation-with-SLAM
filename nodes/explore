@@ -89,7 +89,7 @@ class Explore:
             else:
                 state = self.move_base.get_state()
                 if state == GoalStatus.SUCCEEDED:
-                    rospy.loginfo("Goal succeeded!")
+                    rospy.logdebug("Goal succeeded!")
 
                 
 def main():
