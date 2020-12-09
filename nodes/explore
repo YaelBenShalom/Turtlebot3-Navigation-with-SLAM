@@ -1,12 +1,9 @@
 #!/usr/bin/env python3
+""" This node is designed to navigate through a series of random waypoints in a given rectangular space
 
+    Subscribers: "map" (nav_msgs/OccupancyGrid)
+    Opens a SimpleActionClient of the move_base node
 """
- The explore node causes the robot to explore the environment autonomously while mapping the world
-
- SUBSCRIBERS:
-  sub_map (nav_msgs/OccupancyGrid) - represents a 2-D grid map, in which each cell represents the probability of occupancy.
-"""
-
 import rospy
 import actionlib
 import numpy as np
@@ -15,95 +12,92 @@ from move_base_msgs.msg import MoveBaseFeedback, MoveBaseGoal, MoveBaseAction
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose, Point, Quaternion
 import random
+import time
 
 class Explore:
-    
+
     def __init__(self):
         """ Initialize environment
         """
-        self.rate = rospy.Rate(2)
-
-        # self.result = MoveBaseFeedback()
+        self.rate = rospy.Rate(1)
 
         # Simple Action Client:
         self.move_base = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        
+        self.move_base.wait_for_server()
+        rospy.logdebug("move_base is ready") 
+
         # Initialize subscribers:
         self.map = OccupancyGrid()
         self.sub_map = rospy.Subscriber('/map', OccupancyGrid, self.map_callback)
-        self.sub_feedback = rospy.Subscriber('/move_base/feedback', MoveBaseAction, self.feedback_callback)
+        self.count = 0
+        time.sleep(8)
 
-        while not rospy.is_shutdown():
-            # Create goal:
-            goal = MoveBaseGoal()
-
-            # Set goal:
-            goal.target_pose.header.frame_id = "map"
-            goal.target_pose.header.stamp = rospy.Time.now()
-            goal.target_pose.pose.position.x = random.randint(-10, 10)
-            goal.target_pose.pose.position.y = random.randint(-20, 20)
-            goal.target_pose.pose.orientation.w = 1.0
-
-            # Start the robot moving toward the goal
-            self.move(goal)
+        # Start the robot moving toward the goal
+        self.move()
 
 
-    def map_callback(self, data):
+    def map_callback(self, msg):
         """ Callback function for map subscriber.
         Subscribes to /map to get the OccupancyGrid of the map.
         """
-        self.map = np.array(data.data).reshape((data.info.height, data.info.width))
-        self.map_info = data.info
+        self.map_origin_x = msg.info.origin.position.x
+        self.map_origin_y = msg.info.origin.position.y
+        rospy.logdebug(f"map_origin: {self.map_origin_x, self.map_origin_y}")
 
-
-    def feedback_callback(self,data):
-        """ Callback function for feedback subscriber.
-        Subscribes to /move_base/feedback to get the MoveBaseAction of move_base.
+    
+    def set_goal(self):
+        """ Set random goal position for move_base.
         """
-        self.position = data.feedback.base_position.pose
+        rospy.logdebug("Setting goal")
+
+        # Create goal:
+        goal = MoveBaseGoal()
+
+        # Set random goal:
+        goal.target_pose.header.frame_id = "map"
+        goal.target_pose.header.stamp = rospy.Time.now()
+        goal.target_pose.pose.position.x = random.uniform(self.map_origin_x + 1.0, self.map_origin_x + 3.0)
+        goal.target_pose.pose.position.y = random.uniform(self.map_origin_y + 1.0, self.map_origin_y + 3.0)
+        goal.target_pose.pose.orientation.w = 1.0
+        rospy.logdebug(f"goal: {goal.target_pose.pose.position.x, goal.target_pose.pose.position.y}")
+
+        return goal
 
 
-    def move(self, goal):
-        # Start listner:
-        self.move_base.wait_for_server(rospy.Duration(60))
-        rospy.logdebug("move_base is ready") 
+    def move(self):
+        """ Set random goal position for move_base.
+        """
+        while not rospy.is_shutdown():
+            self.count += 1
+            rospy.logdebug(f"Start moving to point {self.count}")
 
-        # Send the goal pose to the MoveBaseAction server
-        # rospy.logdebug(f"Sending goal")
-        self.move_base.send_goal(goal)
+            # Set random goal:
+            goal = self.set_goal()
 
-        # # Allow 1 minute to get there
-        # rospy.logdebug(f"Moving")
-        finished_within_time = self.move_base.wait_for_result(rospy.Duration(60)) 
-        
-        # If we don't get there in time, abort the goal
-        if not finished_within_time:
-            self.move_base.cancel_goal()
-            rospy.loginfo("Timed out achieving goal")
+            # Move to the goal and wait 
+            self.move_base.send_goal(goal)
+            rospy.logdebug("Finish setting goal")
 
-        else:
-            # We made it!
-            state = self.move_base.get_state()
-            if state == GoalStatus.SUCCEEDED:
-                rospy.loginfo("Goal succeeded!")
+            finished_within_time = self.move_base.wait_for_result(rospy.Duration(30))
+            rospy.logdebug(f"Finish moving to point {self.count}")
 
-        # # Send the goal pose to the MoveBaseAction server
-        # self.move_base.send_goal(goal)
+            # If we don't get there in time, abort the goal
+            if (not finished_within_time):
+                self.move_base.cancel_goal()
+                rospy.logdebug("Timed out achieving goal")
 
-        # state = self.move_base.get_state()
-        # while state != 3:
-        #     state = self.move_base.get_state()
-        #     rospy.logerr(state)
-        #     self.rate.sleep()
+            else:
+                state = self.move_base.get_state()
+                if state == GoalStatus.SUCCEEDED:
+                    rospy.loginfo("Goal succeeded!")
 
-
+                
 def main():
-    """ The main() function. """
+    """ The main() function """
     rospy.init_node('explore', log_level=rospy.DEBUG)
     Explore()
     rospy.spin()
-    # while not rospy.is_shutdown():
-    #     rospy.spin()
+
 
 if __name__ == '__main__':
     try:
