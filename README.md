@@ -1,5 +1,5 @@
 # MECH_ENG_495 - Homework 4
-GitHub repository - `https://github.com/ME495-EmbeddedSystems/homework04-YaelBenShalom`
+GitHub repository - `https://github.com/YaelBenShalom/Turtlebot3-Navigation-with-SLAM`
 
 ## Overview
 The goal is to use the turtlebot to map an environment and then navigate within the map using slam_toolbox.
