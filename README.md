@@ -42,6 +42,7 @@ The package contain 4 launchfiles and 1 node:
      - Explore the space by randomly picking 2D navigation goals automatically in rviz.
 
     ![The robot navigates to random 2D navigation goals in Rviz](https://github.com/YaelBenShalom/Turtlebot3-Navigation-with-SLAM/blob/master/videos/explore.gif)
+    
     (This video speed is X10)
 
     - The generated map:
