@@ -28,19 +28,19 @@ The package contain 4 launchfiles and 1 node:
 
      - Move the robot by setting 2D navigation goals in Rviz.
 
-    ![The robot navigates to a 2D navigation goal in Rviz](https://github.com/ME495-EmbeddedSystems/homework04-YaelBenShalom/blob/master/videos/nav_stack2.gif)
+    ![The robot navigates to a 2D navigation goal in Rviz](https://github.com/YaelBenShalom/Turtlebot3-Navigation-with-SLAM/blob/master/videos/nav_stack2.gif)
 
 
 3. To launch the `slam_stack` launchfile on Gazebo and Rviz simulation, run `roslaunch homework4 slam_stack.launch`.
 
      - Explore the space by setting 2D navigation goals manually in rviz.
 
-    ![The robot navigates to a unknown 2D navigation goal in Rviz](https://github.com/ME495-EmbeddedSystems/homework04-YaelBenShalom/blob/master/videos/slam_stack.gif)
+    ![The robot navigates to a unknown 2D navigation goal in Rviz](https://github.com/YaelBenShalom/Turtlebot3-Navigation-with-SLAM/blob/master/videos/slam_stack.gif)
 
 4. To launch the `explore` launchfile on Gazebo and Rviz simulation, run `roslaunch homework4 explore.launch`.
 
      - Explore the space by randomly picking 2D navigation goals automatically in rviz.
 
-    ![The robot navigates to random 2D navigation goals in Rviz](https://github.com/ME495-EmbeddedSystems/homework04-YaelBenShalom/blob/master/videos/explore2.gif)
+    ![The robot navigates to random 2D navigation goals in Rviz](https://github.com/YaelBenShalom/Turtlebot3-Navigation-with-SLAM/blob/master/videos/explore.gif)
 
     This video speed is X10.
