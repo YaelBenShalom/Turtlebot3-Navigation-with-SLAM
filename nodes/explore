@@ -12,7 +12,7 @@ from actionlib_msgs.msg import GoalStatus
 from move_base_msgs.msg import MoveBaseFeedback, MoveBaseGoal, MoveBaseAction
 from nav_msgs.msg import OccupancyGrid
 from geometry_msgs.msg import Pose, Point, Quaternion
-import random
+from random import randrange
 import time
 
 class Explore:
@@ -25,8 +25,12 @@ class Explore:
 
         # Simple Action Client:
         self.move_base = actionlib.SimpleActionClient('move_base', MoveBaseAction)
-        self.move_base.wait_for_server()
+        self.move_base.wait_for_server(rospy.Duration(5.0))
         rospy.logdebug("move_base is ready") 
+
+        self.x = 0
+        self.y = 0
+        self.completion = 0
 
         # Initialize subscribers:
         self.map = OccupancyGrid()
@@ -34,22 +38,35 @@ class Explore:
         self.count = 0
         time.sleep(8)
 
-        # Start the robot moving toward the goal
-        self.move()
-
 
     def map_callback(self, data):
         """ Callback function for map subscriber.
         Subscribes to /map to get the OccupancyGrid of the map.
         """
-        self.map = np.array(data.data).reshape((data.info.height, data.info.width))
-        self.map_origin_x = data.info.origin.position.x
-        self.map_origin_y = data.info.origin.position.y
-        rospy.logdebug(f"map_origin: {self.map_origin_x, self.map_origin_y}")
+        valid = False
 
+        while valid is False:
+            map_size = randrange(len(data.data))
+            self.map = data.data[map_size]
+
+            edges = self.check_neighbors(data, map_size)
+            if self.map != -1 and self.map <= 0.2 and edges is True:
+                valid = True
+            
+        row = map_size / 384
+        col = map_size % 384
+
+        self.x = col * 0.05 - 10  # column * resolution + origin_x
+        self.y = row * 0.05 - 10  # row * resolution + origin_x
+        
+        if self.completion % 2 == 0:
+            self.completion += 1
+            # Start the robot moving toward the goal
+            self.set_goal()
     
+
     def set_goal(self):
-        """ Set random goal position for move_base.
+        """ Set goal position for move_base.
         """
         rospy.logdebug("Setting goal")
 
@@ -59,42 +76,54 @@ class Explore:
         # Set random goal:
         goal.target_pose.header.frame_id = "map"
         goal.target_pose.header.stamp = rospy.Time.now()
-        goal.target_pose.pose.position.x = random.uniform(self.map_origin_x - 1.0, self.map_origin_x + 3.0)
-        goal.target_pose.pose.position.y = random.uniform(self.map_origin_y - 1.0, self.map_origin_y + 1.0)
+        goal.target_pose.pose.position.x = self.x
+        goal.target_pose.pose.position.y = self.y
         goal.target_pose.pose.orientation.w = 1.0
         rospy.logdebug(f"goal: {goal.target_pose.pose.position.x, goal.target_pose.pose.position.y}")
+        self.move_base.send_goal(goal, self.goal_status)
 
-        return goal
 
-
-    def move(self):
-        """ Set random goal position for move_base.
+    def goal_status(self, status, result):
+        """ Check the status of a goal - goal reached, aborted,
+        or rejected.
         """
-        while not rospy.is_shutdown():
-            self.count += 1
-            rospy.logdebug(f"Start moving to point {self.count}")
+        self.completion += 1
 
-            # Set random goal:
-            goal = self.set_goal()
+        # Goal reached
+        if status == 3:
+            rospy.loginfo("Goal succeeded")
 
-            # Move to the goal and wait 
-            self.move_base.send_goal(goal)
-            rospy.logdebug("Finish setting goal")
+        # Goal aborted
+        if status == 4:
+            rospy.loginfo("Goal aborted")
 
-            finished_within_time = self.move_base.wait_for_result(rospy.Duration(30))
-            rospy.logdebug(f"Finish moving to point {self.count}")
+        # Goal rejected
+        if status == 5:
+            rospy.loginfo("Goal rejected")
 
-            # If we don't get there in time, abort the goal
-            if (not finished_within_time):
-                self.move_base.cancel_goal()
-                rospy.logdebug("Timed out achieving goal")
 
-            else:
-                state = self.move_base.get_state()
-                if state == GoalStatus.SUCCEEDED:
-                    rospy.logdebug("Goal succeeded!")
+    def check_neighbors(self, data, map_size):
+        """ Checks neighbors for random points on the map.
+        """
+        unknowns = 0
+        obstacles = 0
 
-                
+        for x in range(-3, 4):
+            for y in range(-3, 4):
+                row = x * 384 + y
+                try:
+                    if data.data[map_size + row] == -1:
+                        unknowns += 1
+                    elif data.data[map_size + row] > 0.65:
+                        obstacles += 1
+                except IndexError:
+                    pass
+        if unknowns > 0 and obstacles < 2:
+            return True
+        else:
+            return False
+
+
 def main():
     """ The main() function """
     rospy.init_node('explore', log_level=rospy.DEBUG)
