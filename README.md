@@ -24,7 +24,7 @@ The package contain 4 launchfiles and 1 node:
 **explore.launch** - Lets the robot use the `explore.py` node and `slam_toolbox` to autonomously map the environment.
 
 
-# Getting Started
+## Getting Started
 
 Create a workspace, clone the repo, and build the workspace:
 ```
